@@ -1,0 +1,73 @@
+table {
+    white-space: nowrap;
+    display: inline-block;
+    color: black;
+}
+
+/* input [type="checkbox"]{
+  height: 60px;
+} */
+
+.col0 {
+    text-align: right;
+    width: 2.25em;
+    padding-right: 5px;
+}
+
+.username {
+    color: black;
+}
+
+.work {
+    color: black;
+}
+
+.timeLeft {
+    color: black;
+    margin: 8px;
+    /**text-align: left;**/
+}
+
+.iterations {
+    color: black;
+}
+
+input[type="checkbox"] {
+    font-size: 10px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width: 3.5em;
+    height: 1.5em;
+    background: #ddd;
+    border-radius: 3em;
+    position: relative;
+    cursor: pointer;
+    outline: none;
+    -webkit-transition: all .2s ease-in-out;
+    transition: all .2s ease-in-out;
+}
+
+input[type="checkbox"]:checked {
+    background: #0ebeff;
+}
+
+input[type="checkbox"]:after {
+    position: absolute;
+    content: "";
+    width: 1.5em;
+    height: 1.5em;
+    border-radius: 50%;
+    background: #fff;
+    -webkit-box-shadow: 0 0 .25em rgba(0, 0, 0, .3);
+    box-shadow: 0 0 .25em rgba(0, 0, 0, .3);
+    -webkit-transform: scale(.7);
+    transform: scale(.7);
+    left: 0;
+    -webkit-transition: all .2s ease-in-out;
+    transition: all .2s ease-in-out;
+}
+
+input[type="checkbox"]:checked:after {
+    left: calc(100% - 1.5em);
+}

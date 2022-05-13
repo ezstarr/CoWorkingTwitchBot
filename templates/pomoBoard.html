@@ -1,0 +1,100 @@
+<html>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js" type="text/javascript"></script>
+<link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='pomoBoard.css') }}">
+
+</html>
+
+<body>
+    <table class="board" id="board">
+
+    </table>
+    <script>
+        $(function () {
+
+            // Fetch the board
+            function fetchBoard() {
+                $.ajax({
+                    type: 'GET',
+                    contentType: 'application/json; charset=utf-8',
+                    url: "{{ url_for('pomoData', channel=channel) }}",
+                    success: function (data) {
+                        $("#board").empty();
+                        if (typeof (data) === 'string') {
+                            $("#board").append(data);
+                            return;
+                        }
+                        for (i in data) {
+                            let content = JSON.parse(data[i])
+                            $("#board").append('<tr class="task" id="' + i + '"></tr>');
+                            $("#" + i).append('<td class="col0" id="' + i + 'Col0"></td>');
+                            $("#" + i).append('<td class="col1" id="' + i + 'Col1"></td>');
+                            if (content.iterStartTime) {
+                                $("#" + i + "Col1").append('<span class="username">' + content
+                                    .userDisplayName + '</span>: ');
+                                if (content.study_mode || content.breakPeriod == 0) {
+                                    $("#" + i + "Col1").append('<span class="work">' + content.work
+                                        .replace(/</, "&lt;").replace(/>/, '&gt;') + '</span> ')
+                                } else {
+                                    $("#" + i + "Col1").append('<span class="work">relax!</span> ')
+                                }
+                                let currentTime = new Date()
+                                let timeLeft = (Date.parse(content.iterEndTime + 'Z') - currentTime
+                                    .getTime()) / 60 / 1000
+                                $("#" + i + "Col0").append('<span class="timeLeft">' + Math.round(
+                                    timeLeft) + '</span>');
+                                if (content.iterations > 1) {
+                                    $("#" + i + "Col1").append(
+                                        ' <span class="iterations">(' + content
+                                        .currentIteration + ' of ' + content.iterations +
+                                        ')</span>'
+                                    )
+                                }
+                            } else {
+                                $("#" + i + "Col0").append('<input type="checkbox" id="' + i +
+                                    'Done"></input>')
+                                if (content.done == true) {
+                                    $("#" + i + "Done").prop('checked', true);
+                                }
+                                $("#" + i + "Col1").append('<span class="username">' + content
+                                    .userDisplayName + '</span>: ');
+                                $("#" + i + "Col1").append('<span class="work">' + content.work
+                                    .replace(/</, "&lt;").replace(/>/, '&gt;') + '</span> ')
+                            }
+                            if ($('#' + i).text().length > 55) {
+                                let difference = $('#' + i).text().length - 55;
+                                let workText = $('#' + i + ' .work').text()
+                                $('#' + i + ' .work').text(
+                                    workText.substring(0, workText.length - difference - 1) +
+                                    '…'
+                                );
+                            }
+                        }
+                    }
+                })
+            }
+            fetchBoard();
+            setInterval(fetchBoard, 5000);
+
+
+            // Automatic Scroll
+            var direction = 'd';
+
+            function scrollUpAndDown() {
+                if (direction == 'd') {
+                    if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight) {
+                        direction = 'u';
+                    } else {
+                        window.scroll(0, window.pageYOffset + 5);
+                    }
+                } else {
+                    if (window.pageYOffset == 0) {
+                        direction = 'd';
+                    } else {
+                        window.scroll(0, window.pageYOffset - 5);
+                    }
+                }
+            }
+            setInterval(scrollUpAndDown, 100);
+        });
+    </script>
+</body>
