@@ -169,6 +169,10 @@ class CoWorkingBot(Bot):
                 await self.timer(ctx)
             return
 
+        # !pomo pause [Pause Period]
+        elif(False):
+            pass
+
         # !pomo [Study Period] [Break Period] [Sessions] [Work]
         elif bool(re.match(prefix + dRe * 3 + "( .*)?$", ctx.message.content)):
             studyPeriod = float(studyPeriod)
