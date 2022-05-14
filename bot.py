@@ -72,7 +72,7 @@ class CoWorkingBot(Bot):
                 await bot.handle_commands(ctx)
         else:  # If user has a Timer Running
             timer = self.pomo.get_timer(ctx.channel.name, ctx.author.name)
-            if (not (timer is None) and timer.study_mode and not(timer.paused)
+            if (not (timer is None) and timer.study_mode and not (timer.paused)
                     and not (timer.chat_mode)):
                 time = timer.iterEndTime - datetime.datetime.now()
                 timeLeft = round(time.total_seconds() / 60)
@@ -171,38 +171,44 @@ class CoWorkingBot(Bot):
 
         # !pomo pause [Pause Period]
         elif (studyPeriod.lower() == "pause"):
-            if(not(bool(re.match(dRe[1:]+"$", breakPeriod)) and float(breakPeriod) <= 300 and float(breakPeriod) >= 5)):
-                await ctx.reply(f"To use pause funtion please make sure to follow this format '!pomo pause <pause period>' where the <pause period> is ≥5 and ≤300.")
+            if (not (bool(re.match(dRe[1:] + "$", breakPeriod)) and
+                     float(breakPeriod) <= 300 and float(breakPeriod) >= 5)):
+                await ctx.reply(
+                    f"To use pause funtion please make sure to follow this format '!pomo pause <pause period>' where the <pause period> is ≥5 and ≤300."
+                )
                 return
             timer = self.pomo.get_timer(channel, user)
-            if(timer is None):
+            if (timer is None):
                 await ctx.reply(f"You currently have no active pomo.")
                 return
             self.asyncTasks[channel][user].cancel()
             timer.pause(float(breakPeriod))
             botDatabase.writeTimer(channel, timer)
             await ctx.reply(f"Pausing timer for {int(breakPeriod)}")
-            self.asyncTasks[channel][user] = asyncio.create_task(self.restoreWait(
-            ctx, timer), name = user)
+            self.asyncTasks[channel][user] = asyncio.create_task(
+                self.restoreWait(ctx, timer), name=user)
             return
 
         # !pomo resume
         elif (studyPeriod.lower() == "resume"):
             timer: Timer = self.pomo.get_timer(channel, user)
-            if(timer is None):
+            if (timer is None):
                 await ctx.reply(f"You currently have no active pomo.")
                 return
-            if(not(timer.paused)):
+            if (not (timer.paused)):
                 await ctx.reply(f"You currently have no paused pomo.")
                 return
             self.asyncTasks[channel][user].cancel()
             timer.resume()
             botDatabase.writeTimer(channel, timer)
-            await ctx.reply(f"Resuming pomo '{timer.work}'. You have {round(timer.timeLeft.total_seconds()/60)} minute(s) left")
-            self.asyncTasks[channel][user] = asyncio.create_task(self.restoreWait(
-            ctx, timer), name = user)
+            taskWork = timer.work if len(
+                timer.work) <= 50 else timer.work[0:50] + '…'
+            await ctx.reply(
+                f"Resuming pomo '{taskWork}'. You have {round(timer.timeLeft.total_seconds()/60)} minute(s) left"
+            )
+            self.asyncTasks[channel][user] = asyncio.create_task(
+                self.restoreWait(ctx, timer), name=user)
             return
-            
 
         # !pomo [Study Period] [Break Period] [Sessions] [Work]
         elif bool(re.match(prefix + dRe * 3 + "( .*)?$", ctx.message.content)):
@@ -299,13 +305,13 @@ class CoWorkingBot(Bot):
         if (modify == 0):
             botDatabase.writeTimer(ctx._fetch_channel().name, timer)
             if (timer.study_mode):
+                taskWork = timer.work if len(
+                    timer.work) <= 50 else timer.work[0:50] + '…'
                 if (timer.iterations > 1):
                     await ctx.send(
-                        f'{timer.user}, starting work session {timer.currentIteration} of {timer.iterations} on {timer.work} for {round(timer.studyPeriod)} minutes. Good luck!'
+                        f'{timer.user}, starting work session {timer.currentIteration} of {timer.iterations} on {taskWork} for {round(timer.studyPeriod)} minutes. Good luck!'
                     )
                 else:
-                    taskWork = timer.work if len(
-                        timer.work) <= 50 else timer.work[0:50] + '…'
                     await ctx.send(
                         f"{timer.user}, starting work session on {taskWork} for {round(timer.studyPeriod)} minutes. Good luck!"
                     )

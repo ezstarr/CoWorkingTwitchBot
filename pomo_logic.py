@@ -108,7 +108,7 @@ class Timer():
         self.iterStartTime = datetime.datetime.now()
         self.pausedAtTimeLeft = self.timeLeft
         self.iterEndTime = self.iterStartTime + datetime.timedelta(
-                minutes=self.studyPeriod)
+                minutes=pausePeriod)
 
     def resume(self):
         self.iterStartTime = datetime.datetime.now()
