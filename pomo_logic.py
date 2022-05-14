@@ -68,7 +68,7 @@ class Timer():
                 self.iterStartTime +
                 datetime.timedelta(minutes=self.studyPeriod))
         if(pausedAtTimeLeft):
-            t = datetime.strptime(pausedAtTimeLeft,"%H:%M:%S")
+            t = datetime.datetime.strptime(pausedAtTimeLeft,"%H:%M:%S.%f")
             self.pausedAtTimeLeft: datetime.timedelta = datetime.timedelta(hours=t.hour, minutes=t.minute, seconds=t.second)
         else:
             self.pausedAtTimeLeft: datetime.timedelta = None
