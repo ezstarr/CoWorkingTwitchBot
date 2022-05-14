@@ -198,7 +198,7 @@ class CoWorkingBot(Bot):
             self.asyncTasks[channel][user].cancel()
             timer.resume()
             botDatabase.writeTimer(channel, timer)
-            ctx.reply(f"Resuming pomo '{timer.work}'. You have {round(timer.timeLeft.total_seconds()/60)} minute(s) left")
+            await ctx.reply(f"Resuming pomo '{timer.work}'. You have {round(timer.timeLeft.total_seconds()/60)} minute(s) left")
             self.asyncTasks[channel][user] = asyncio.create_task(self.restoreWait(
             ctx, timer), name = user)
             return
