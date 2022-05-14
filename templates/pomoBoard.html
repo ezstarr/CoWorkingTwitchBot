@@ -31,7 +31,9 @@
                             if (content.iterStartTime) {
                                 $("#" + i + "Col1").append('<span class="username">' + content
                                     .userDisplayName + '</span>: ');
-                                if (content.study_mode || content.breakPeriod == 0) {
+                                if(content.pausedAtTimeLeft !== null){
+                                    $("#" + i + "Col1").append('<span class="work">task paused!</span> ')
+                                }else if (content.study_mode || content.breakPeriod == 0) {
                                     $("#" + i + "Col1").append('<span class="work">' + content.work
                                         .replace(/</, "&lt;").replace(/>/, '&gt;') + '</span> ')
                                 } else {
