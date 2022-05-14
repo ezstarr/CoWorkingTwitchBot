@@ -172,7 +172,7 @@ class CoWorkingBot(Bot):
         # !pomo pause [Pause Period]
         elif (studyPeriod.lower() == "pause"):
             if(not(bool(re.match(dRe[1:]+"$", breakPeriod)) and float(breakPeriod) <= 300 and float(breakPeriod) >= 5)):
-                ctx.reply(f"To use pause funtion please make sure to follow this format '!pomo pause <pause period>' where the <pause period> is ≥5 and ≤300.")
+                await ctx.reply(f"To use pause funtion please make sure to follow this format '!pomo pause <pause period>' where the <pause period> is ≥5 and ≤300.")
                 return
             timer = self.pomo.get_timer(channel, user)
             if(timer is None):
@@ -181,7 +181,7 @@ class CoWorkingBot(Bot):
             self.asyncTasks[channel][user].cancel()
             timer.pause(float(breakPeriod))
             botDatabase.writeTimer(channel, timer)
-            ctx.reply(f"Pausing timer for {int(breakPeriod)}")
+            await ctx.reply(f"Pausing timer for {int(breakPeriod)}")
             self.asyncTasks[channel][user] = asyncio.create_task(self.restoreWait(
             ctx, timer), name = user)
             return
