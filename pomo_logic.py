@@ -67,8 +67,11 @@ class Timer():
             iterEndTime) if iterEndTime else (
                 self.iterStartTime +
                 datetime.timedelta(minutes=self.studyPeriod))
-        self.pausedAtTimeLeft: datetime.datetime = parser.parse(
-            pausedAtTimeLeft) if pausedAtTimeLeft else None
+        if(pausedAtTimeLeft):
+            t = datetime.strptime(pausedAtTimeLeft,"%H:%M:%S")
+            self.pausedAtTimeLeft: datetime.timedelta = datetime.timedelta(hours=t.hour, minutes=t.minute, seconds=t.second)
+        else:
+            self.pausedAtTimeLeft: datetime.timedelta = None
         self.chat_mode: bool = chat_mode
 
     def nextIter(self) -> bool:

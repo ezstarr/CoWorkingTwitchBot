@@ -510,7 +510,7 @@ class CoWorkingBot(Bot):
 
     @commands.command(name='finish')
     async def finishTasks(self, ctx: commands.Context, work: str = ''):
-        await self.done(ctx)
+        await self.rmvTask(ctx)
         try:
             self.tasks[ctx.channel.name].pop(ctx.author.name)
             botDatabase.removeTimer(ctx.channel.name, ctx.author.name)
