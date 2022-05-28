@@ -72,7 +72,7 @@ class CoWorkingBot(Bot):
                 await bot.handle_commands(ctx)
         else:  # If user has a Timer Running
             timer = self.pomo.get_timer(ctx.channel.name, ctx.author.name)
-            if (not (timer is None) and timer.study_mode
+            if (not (timer is None) and timer.study_mode and not (timer.paused)
                     and not (timer.chat_mode)):
                 time = timer.iterEndTime - datetime.datetime.now()
                 timeLeft = round(time.total_seconds() / 60)
@@ -149,7 +149,7 @@ class CoWorkingBot(Bot):
             return
 
         # !pomo check
-        elif (studyPeriod == "check"):
+        elif (studyPeriod.lower() == "check"):
             if (user in self.tasks[channel].keys()
                     and self.tasks[channel][user].done == False):
                 await self.addTask(ctx)
@@ -167,6 +167,47 @@ class CoWorkingBot(Bot):
                 await self.addTask(ctx)
             else:
                 await self.timer(ctx)
+            return
+
+        # !pomo pause [Pause Period]
+        elif (studyPeriod.lower() == "pause"):
+            if (not (bool(re.match(dRe[1:] + "$", breakPeriod)) and
+                     float(breakPeriod) <= 300 and float(breakPeriod) >= 5)):
+                await ctx.reply(
+                    f"To use pause funtion please make sure to follow this format '!pomo pause <pause period>' where the <pause period> is ≥5 and ≤300."
+                )
+                return
+            timer = self.pomo.get_timer(channel, user)
+            if (timer is None):
+                await ctx.reply(f"You currently have no active pomo.")
+                return
+            self.asyncTasks[channel][user].cancel()
+            timer.pause(float(breakPeriod))
+            botDatabase.writeTimer(channel, timer)
+            await ctx.reply(f"Pausing timer for {int(breakPeriod)}")
+            self.asyncTasks[channel][user] = asyncio.create_task(
+                self.restoreWait(ctx, timer), name=user)
+            return
+
+        # !pomo resume
+        elif (studyPeriod.lower() == "resume"):
+            timer: Timer = self.pomo.get_timer(channel, user)
+            if (timer is None):
+                await ctx.reply(f"You currently have no active pomo.")
+                return
+            if (not (timer.paused)):
+                await ctx.reply(f"You currently have no paused pomo.")
+                return
+            self.asyncTasks[channel][user].cancel()
+            timer.resume()
+            botDatabase.writeTimer(channel, timer)
+            taskWork = timer.work if len(
+                timer.work) <= 50 else timer.work[0:50] + '…'
+            await ctx.reply(
+                f"Resuming pomo '{taskWork}'. You have {round(timer.timeLeft.total_seconds()/60)} minute(s) left"
+            )
+            self.asyncTasks[channel][user] = asyncio.create_task(
+                self.restoreWait(ctx, timer), name=user)
             return
 
         # !pomo [Study Period] [Break Period] [Sessions] [Work]
@@ -264,13 +305,13 @@ class CoWorkingBot(Bot):
         if (modify == 0):
             botDatabase.writeTimer(ctx._fetch_channel().name, timer)
             if (timer.study_mode):
+                taskWork = timer.work if len(
+                    timer.work) <= 50 else timer.work[0:50] + '…'
                 if (timer.iterations > 1):
                     await ctx.send(
-                        f'{timer.user}, starting work session {timer.currentIteration} of {timer.iterations} on {timer.work} for {round(timer.studyPeriod)} minutes. Good luck!'
+                        f'{timer.user}, starting work session {timer.currentIteration} of {timer.iterations} on {taskWork} for {round(timer.studyPeriod)} minutes. Good luck!'
                     )
                 else:
-                    taskWork = timer.work if len(
-                        timer.work) <= 50 else timer.work[0:50] + '…'
                     await ctx.send(
                         f"{timer.user}, starting work session on {taskWork} for {round(timer.studyPeriod)} minutes. Good luck!"
                     )
@@ -474,14 +515,13 @@ class CoWorkingBot(Bot):
         )
 
     @commands.command(name='finish')
-    async def finishTasks(self, ctx: commands.Context, work: str = ''):        
-        await self.done(ctx)
+    async def finishTasks(self, ctx: commands.Context, work: str = ''):
+        await self.rmvTask(ctx)
         try:
             self.tasks[ctx.channel.name].pop(ctx.author.name)
             botDatabase.removeTimer(ctx.channel.name, ctx.author.name)
         except KeyError:
             pass
-
 
     @commands.command(name="rmvtask")
     async def rmvTaskFromBoard(self, ctx: commands.Context, user: str = ''):
@@ -520,8 +560,8 @@ class CoWorkingBot(Bot):
             await ctx.reply(f"Nice Try! Only Mods can do this.")
 ################ Tasks Section Ended ################
 
-
 ################ Joining Section Started ################
+
     @commands.command(name="join")
     async def addCoWorkingStreamer(self,
                                    ctx: commands.Context,
@@ -573,8 +613,8 @@ class CoWorkingBot(Bot):
                 await ctx.reply(f"The bot is not running on {user} channel")
 ################ Joining Section Ended ################
 
-
 ################ Fun Commands Section Started ################
+
     @commands.command(name="flip")
     async def flip(self, ctx: commands.Context, text: str = ''):
         if (len(text) == 0):
@@ -592,8 +632,9 @@ class CoWorkingBot(Bot):
         if (len(text) == 0):
             text = ctx.author.display_name
         await ctx.reply(f"{text}ノ( ゜-゜ノ)")
-################ Fun Commands Section Ended ################
 
+
+################ Fun Commands Section Ended ################
 
 #Original Author: https://github.com/00MB/
 if __name__ == "__main__":

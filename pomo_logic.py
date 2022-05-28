@@ -31,9 +31,10 @@ class Task():
     def timeTakenM(self) -> int:
         return round(self.timeTaken.total_seconds() / 60)
 
-    def __str__(self):
+    def __str__(self) -> str:
         text = f"{self.userDisplayName}: {self.work}"
         return text
+
 
 
 class Timer():
@@ -49,6 +50,7 @@ class Timer():
         currentIteration: int = 1,
         study_mode: bool = True,
         iterEndTime: str = None,
+        pausedAtTimeLeft: str = None,
         chat_mode=False,
     ):
         self.user: str = user
@@ -64,41 +66,64 @@ class Timer():
         self.iterEndTime: datetime.datetime = parser.parse(
             iterEndTime) if iterEndTime else (
                 self.iterStartTime +
-                datetime.timedelta(minutes=int(self.studyPeriod)))
+                datetime.timedelta(minutes=self.studyPeriod))
+        if(pausedAtTimeLeft):
+            t = datetime.datetime.strptime(pausedAtTimeLeft,"%H:%M:%S.%f")
+            self.pausedAtTimeLeft: datetime.timedelta = datetime.timedelta(hours=t.hour, minutes=t.minute, seconds=t.second)
+        else:
+            self.pausedAtTimeLeft: datetime.timedelta = None
         self.chat_mode: bool = chat_mode
 
     def nextIter(self) -> bool:
+        if(self.paused):
+            self.resume()
+            return True
+
         self.iterStartTime = datetime.datetime.now()
 
         if (self.study_mode and self.breakPeriod != 0):
             self.study_mode = False
             self.iterEndTime = self.iterStartTime + datetime.timedelta(
-                minutes=int(self.breakPeriod))
+                minutes=self.breakPeriod)
 
         elif (not (self.study_mode)
               and self.currentIteration + 1 <= self.iterations):
             self.study_mode = True
             self.currentIteration += 1
             self.iterEndTime = self.iterStartTime + datetime.timedelta(
-                minutes=int(self.studyPeriod))
+                minutes=self.studyPeriod)
 
         else:
             return False
 
-        self.iterStartTime = datetime.datetime.now()
         return True
 
-    def addTime(self, minutes: int):
+    def addTime(self, minutes: float):
         self.iterEndTime += datetime.timedelta(minutes=minutes)
 
     def triggerChatMode(self, set=True):
         self.chat_mode = set
 
+    def pause(self, pausePeriod):
+        self.iterStartTime = datetime.datetime.now()
+        self.pausedAtTimeLeft = self.timeLeft
+        self.iterEndTime = self.iterStartTime + datetime.timedelta(
+                minutes=pausePeriod)
+
+    def resume(self):
+        self.iterStartTime = datetime.datetime.now()
+        self.iterEndTime = self.iterStartTime + self.pausedAtTimeLeft
+        self.pausedAtTimeLeft = None
+
+    @property
+    def paused(self,) -> bool:
+        return not(self.pausedAtTimeLeft is None)
+
     @property
     def timeLeft(self) -> datetime.timedelta:
         return self.iterEndTime - datetime.datetime.now()
 
-    def __str__(self):
+    def __str__(self) -> str:
         text = f"{self.userDisplayName}: {self.work} {round(self.timeLeft.total_seconds() / 60)}"
         if (self.iterations):
             text += f" ({self.currentIteration} of {self.iterations})"
